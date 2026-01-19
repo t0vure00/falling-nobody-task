@@ -1,0 +1,6 @@
+@falling_nobody_task_HostAddress = http://localhost:5228
+
+GET {{falling_nobody_task_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
