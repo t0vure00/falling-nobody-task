@@ -69,3 +69,5 @@ app.Run();
 
 public record CreateReservationRequest(int RoomId, string StartTime, string EndTime);
 
+public partial class Program { }
+

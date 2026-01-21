@@ -1,6 +1,31 @@
 @falling_nobody_task_HostAddress = http://localhost:5228
 
-GET {{falling_nobody_task_HostAddress}}/weatherforecast/
+### Get all rooms
+GET {{falling_nobody_task_HostAddress}}/rooms
+Accept: application/json
+
+###
+
+### Get reservations for a specific room (roomId=1)
+GET {{falling_nobody_task_HostAddress}}/reservations?roomId=1
+Accept: application/json
+
+###
+
+### Create a new reservation
+POST {{falling_nobody_task_HostAddress}}/reservations
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startTime": "2026-01-22T10:00:00Z",
+  "endTime": "2026-01-22T11:00:00Z"
+}
+
+###
+
+### Cancel a reservation (replace {id} with actual reservation ID)
+DELETE {{falling_nobody_task_HostAddress}}/reservations/123e4567-e89b-12d3-a456-426614174000
 Accept: application/json
 
 ###
