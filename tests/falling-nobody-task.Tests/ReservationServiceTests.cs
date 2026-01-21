@@ -17,7 +17,43 @@ public class ReservationServiceTests
         _service = new ReservationService();
     }
 
-    #region US-1: Create a Room Reservation
+    #region Constructor Tests
+
+    [Fact]
+    public void Constructor_InitializesThirtyRooms()
+    {
+        // Arrange & Act
+        var rooms = _service.GetAllRooms();
+
+        // Assert
+        Assert.Equal(30, rooms.Count());
+        for (int i = 1; i <= 30; i++)
+        {
+            Assert.Contains(rooms, r => r.Id == i && r.Name == $"Room {i}");
+        }
+    }
+
+    [Fact]
+    public void Constructor_SeedsInitialReservationsForSixRooms()
+    {
+        // Arrange & Act: Check that only rooms 1-6 have reservations
+        for (int i = 1; i <= 30; i++)
+        {
+            var reservations = _service.GetReservationsForRoom(i);
+            if (i <= 6)
+            {
+                Assert.Single(reservations); // Rooms 1-6 should have exactly one reservation
+            }
+            else
+            {
+                Assert.Empty(reservations); // Rooms 7-30 should have no reservations
+            }
+        }
+    }
+
+    #endregion
+
+    #region CreateReservation Tests
 
     [Fact]
     public void CreateReservation_WithValidData_ReturnsReservationWithUniqueId()
@@ -88,9 +124,39 @@ public class ReservationServiceTests
         Assert.Contains("Room not found", exception.Message);
     }
 
+        [Fact]
+    public void CreateReservation_AtExactBoundaryTime_Overlaps()
+    {
+        // Arrange: Create first reservation
+        var startTime1 = DateTime.UtcNow.AddHours(10);
+        var endTime1 = startTime1.AddHours(1);
+        _service.CreateReservation(7, startTime1, endTime1); // Room 7 has no seeded reservations
+
+        // Act & Assert: Try to create second reservation starting exactly at end of first - should overlap
+        var startTime2 = endTime1;
+        var endTime2 = startTime2.AddHours(1);
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.CreateReservation(7, startTime2, endTime2));
+    }
+
+    [Fact]
+    public void CreateReservation_WithVeryShortDuration_Succeeds()
+    {
+        // Arrange: Edge case - very short reservation
+        var startTime = DateTime.UtcNow.AddHours(10);
+        var endTime = startTime.AddMinutes(1);
+
+        // Act
+        var result = _service.CreateReservation(8, startTime, endTime);
+
+        // Assert
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.Equal(8, result.RoomId);
+    }
+
     #endregion
 
-    #region US-2: Cancel a Reservation
+    #region CancelReservations Tests
 
     [Fact]
     public void CancelReservation_WithValidId_ReturnsTrueAndRemovesReservation()
@@ -122,7 +188,7 @@ public class ReservationServiceTests
 
     #endregion
 
-    #region US-3: View Reservations for a Room
+    #region GetReservationsForRoom Tests
 
     [Fact]
     public void GetReservationsForRoom_WithValidRoomId_ReturnsReservationsInChronologicalOrder()
@@ -140,6 +206,34 @@ public class ReservationServiceTests
         // Verify chronological order (only one, but if multiple, they should be sorted)
     }
 
+    // Add test for checking multiple reservations and that they are in order
+    [Fact]
+    public void GetReservationsForRoom_ReturnsMultipleReservationsInChronologicalOrder()
+    {
+        // Arrange: create three non-overlapping reservations for room 9
+        var start1 = DateTime.UtcNow.AddHours(5);
+        var end1 = start1.AddHours(1);
+        var r1 = _service.CreateReservation(9, start1, end1);
+
+        var start2 = end1.AddMinutes(1);
+        var end2 = start2.AddHours(1);
+        var r2 = _service.CreateReservation(9, start2, end2);
+
+        var start3 = end2.AddMinutes(1);
+        var end3 = start3.AddHours(1);
+        var r3 = _service.CreateReservation(9, start3, end3);
+
+        // Act
+        var reservations = _service.GetReservationsForRoom(9).ToList();
+
+        // Assert: should contain three reservations in chronological order
+        Assert.Equal(3, reservations.Count);
+        Assert.Equal(r1.Id, reservations[0].Id);
+        Assert.Equal(r2.Id, reservations[1].Id);
+        Assert.Equal(r3.Id, reservations[2].Id);
+        Assert.True(reservations[0].StartTime < reservations[1].StartTime);
+        Assert.True(reservations[1].StartTime < reservations[2].StartTime);
+    }
     [Fact]
     public void GetReservationsForRoom_WithRoomHavingNoReservations_ReturnsEmptyList()
     {
@@ -151,72 +245,6 @@ public class ReservationServiceTests
 
         // Assert
         Assert.Empty(reservations);
-    }
-
-    #endregion
-
-    #region US-5: Seed Initial Data
-
-    [Fact]
-    public void Constructor_InitializesThirtyRooms()
-    {
-        // Arrange & Act
-        var rooms = _service.GetAllRooms();
-
-        // Assert
-        Assert.Equal(30, rooms.Count());
-        for (int i = 1; i <= 30; i++)
-        {
-            Assert.Contains(rooms, r => r.Id == i && r.Name == $"Room {i}");
-        }
-    }
-
-    [Fact]
-    public void Constructor_SeedsInitialReservationsForSixRooms()
-    {
-        // Arrange & Act: Check rooms 1-6 have reservations
-        var totalReservations = 0;
-        for (int i = 1; i <= 6; i++)
-        {
-            totalReservations += _service.GetReservationsForRoom(i).Count();
-        }
-
-        // Assert
-        Assert.Equal(6, totalReservations); // One each for rooms 1-6
-    }
-
-    #endregion
-
-    #region Edge Cases
-
-    [Fact]
-    public void CreateReservation_AtExactBoundaryTime_Overlaps()
-    {
-        // Arrange: Create first reservation
-        var startTime1 = DateTime.UtcNow.AddHours(10);
-        var endTime1 = startTime1.AddHours(1);
-        _service.CreateReservation(7, startTime1, endTime1); // Room 7 has no seeded reservations
-
-        // Act & Assert: Try to create second reservation starting exactly at end of first - should overlap
-        var startTime2 = endTime1;
-        var endTime2 = startTime2.AddHours(1);
-        Assert.Throws<InvalidOperationException>(() =>
-            _service.CreateReservation(7, startTime2, endTime2));
-    }
-
-    [Fact]
-    public void CreateReservation_WithVeryShortDuration_Succeeds()
-    {
-        // Arrange: Edge case - very short reservation
-        var startTime = DateTime.UtcNow.AddHours(10);
-        var endTime = startTime.AddMinutes(1);
-
-        // Act
-        var result = _service.CreateReservation(8, startTime, endTime);
-
-        // Assert
-        Assert.NotEqual(Guid.Empty, result.Id);
-        Assert.Equal(8, result.RoomId);
     }
 
     #endregion
