@@ -136,7 +136,7 @@ USER
 Okay, can you add the improved requirements to the prompt with next changes: Room are predefined in memory -> There are 30 rooms and six rooms are reserved at the start of the application. Add also recommendations 5. Error Handling Expectations and 6. Concurrency Expectations as they are missing from the improvements list.
 
 
-CHATGPT ANSWER (FREE Version)
+CHATGPT
 Here is the revised and complete prompt, with your requested changes incorporated and the missing recommendations added in a clear, professional way. This version is well-suited for a technical assignment or take-home exercise.
 
 Meeting Room Reservation API – Assignment
@@ -272,13 +272,13 @@ Business Rules Enforced:
 The API is now ready for testing. You can run dotnet run to start the server and access the Swagger UI at https://localhost:5001/swagger to interact with the endpoints. The unit tests can be executed with dotnet test to validate functionality.
 
 ####### NOTES #######
-Copilot also created unit tests, which produced fail: error CS0246: The type or namespace name 'FactAttribute' could not be found (are you missing a using directive or an assembly reference?). Which possibly relates to version differences between used library and project. Will see if this repeats later, but I decided at this point to get only the bare bones working and take the tests in to the project in part 2 of the task. Also to due to simplicity of the API and as not to create a black box in which I cannot see, manually test basic funtions according to defined functionality and business rules.
+Copilot also created unit tests, which produced fail: error CS0246: The type or namespace name 'FactAttribute' could not be found (are you missing a using directive or an assembly reference?). Which possibly relates to version differences between used library and project. Will see if this repeats later, but I decided at this point to get only the bare bones working and take the tests in to the project in part 2 of the task. Also to due to simplicity of the API and as not to create a black box in which I cannot see, manually tested basic funtions according to defined functionality and business rules.
 #######
 
 USER (continuing the previous conversation with ChatGPT)
 Can you give me simple user stories based on the previous information?
 
-CHATGPT ANSWER (FREE Version)
+CHATGPT
 Core Reservation User Stories
 US-1: Create a Room Reservation
 
@@ -411,7 +411,7 @@ USER
 I was able to reserve a room starting exactly from the time previous ended, like for example the previous ended 15:00 and I was able to reserve it from 15:00, at earlist it should be possible from 15:01. Can you make that edit?
 
 
-CHATGPT FREE Answer (FREE Version)
+CHATGPT
 Perfect! I've updated the overlap detection logic in ReservationService.cs to prevent reservations from starting at the exact same time another reservation ends.
 
 The change modifies the condition from allowing touching reservations (startTime >= r.EndTime) to requiring a strict gap (startTime > r.EndTime). This means:
@@ -421,7 +421,7 @@ This prevents any possibility of bookings touching at the boundary time
 The existing unit tests should still pass since they test for complete overlaps, and the seeded data doesn't create touching scenarios. The API now enforces the stricter no-touching policy you requested, ensuring rooms can't be booked consecutively without any time gap.
 
 ####### NOTES #######
-Commit: Alkuperäinen AI-generoitu commit, was doen at this point
+Commit: Alkuperäinen AI-generoitu commit, was done at this point
 #######
 
 # ############## PHASE 2 ############## PHASE 2 ##############
@@ -436,7 +436,7 @@ Next I'd like to add some unit testing. What is the next step to that with .NET 
 
 
 ####### NOTES #######
-Added the tests inside the project dir with dotnet new xunit falling-nobody-task.Tests and I decided to ask about that as I had seen earlier that that might produce error and in Stack Overflow there was a discussion that the test project should be at the same level as the actual project and not inside it. As Copilto had done in phase 1.
+Copilot added the tests inside the project dir with dotnet new xunit falling-nobody-task.Tests and I decided to ask about that, as I had seen earlier that that might produce error and in Stack Overflow there was a discussion that the test project should be at the same level as the actual project and not inside it. Copilot had done the same in phase 1.
 #######
 
 
@@ -447,10 +447,13 @@ COPILOT
 Yes, it's standard practice in .NET projects to initialize the test project within the same solution directory (i.e., alongside your main project files). This keeps everything organized under one solution.
 
 To proceed, I'll create the test project in a tests subfolder for better organization. Here's the command to run in your terminal:
+dotnet new xunit -n falling-nobody-task.Tests -o tests/falling-nobody-task.Tests
 
 After that, add it to your solution:
+dotnet sln add tests/falling-nobody-task.Tests/falling-nobody-task.Tests.csproj
 
 And add a reference to your main project:
+dotnet add tests/falling-nobody-task.Tests/falling-nobody-task.Tests.csproj reference falling-nobody-task.csproj
 
 This sets up the test project properly. Let me know if you'd like me to run these commands or if you have any preferences for the setup!
 
@@ -459,8 +462,11 @@ USER
 Okay, proceed.
 
 
-COPILOT
-Initialized the test project with in it's own test folder and tried to run the tests, but ended with the same error: error CS0579: Duplicate 'global::System.Runtime.Versioning.TargetFrameworkAttribute' attribute.
+####### NOTES #######
+Copilot nitialized the test project with in it's own test folder and tried to run the tests, but ended with the same error: error CS0579: Duplicate 'global::System.Runtime.Versioning.TargetFrameworkAttribute' attribute.
+
+Earlier Copilto got stuck in a never ending loop here and since the main project was not in the right place for things to work, I decided to stop Copilot to ask to make that change.
+#######
 
 
 USER
@@ -490,6 +496,7 @@ If you'd like to add more tests (e.g., for the API controllers or integration te
 
 USER
 Is the project tree now according to best practises?
+
 
 COPILOT
 Yes, the project tree is now aligned with .NET best practices! Here's a breakdown:
@@ -846,4 +853,79 @@ The code is now better organized and easier to navigate, with clear groupings by
 
 ####### NOTES #######
 Commit: lisäyksen korjaus: pienet muutokset koodin järjestelyyn ja HTTPS-status koodien testaus lisätty, was added.
+
+Next I decided to take a closer look at the application code.
+#######
+
+
+USER
+Go through ReservationService.cs and see if there is something to do better, especially look through the notices provided by IDE and see ig they are worth editing.
+
+
+COPILOT
+I'll create a short todo plan, then patch ReservationService.cs to improve overlap checks and return types, and run tests.
+
+Created 3 todos
+
+Patching the file to: - use safer overlap logic, - return read-only collections, - capture 'now' for validation. Then I'll run the test suite.
+
+I'll search the file to find exact lines to edit.
+
+Now I'll apply three targeted edits: add missing using directives, change the room/reservation return types to read-only, and update the reservation validation/overlap logic.
+
+I'll run dotnet test to verify changes didn't break tests.
+
+I'll restore the original boundary-overlap semantics in the overlap check to match tests, then re-run tests.
+
+Summary
+
+File: ReservationService.cs
+Changes: Improved clarity and safety:
+Usings: added System.Collections.Generic and System.Linq.
+Getters: GetAllRooms() → IReadOnlyList<Room>; GetReservationsForRoom(...) → IReadOnlyList<Reservation> (returns a copied list).
+CreateReservation: capture now = DateTime.UtcNow for validation; clarified overlap check while preserving existing boundary semantics expected by tests.
+Tests: Ran dotnet test — all tests pass (23 succeeded, 0 failed); 4 warnings unchanged.
+Next steps (optional)
+
+Consider: switching to DateTimeOffset for unambiguous time handling or introducig an injectable clock for testability.
+Want me to commit these changes and push a branch?
+
+
+USER
+What would the change to DateTimeOffset look like? And could you expand why it would be better?
+
+
+COPILOT
+Why DateTimeOffset is Better
+Key advantages over DateTime:
+
+Explicit timezone context — DateTime.UtcNow has a Kind property that can be lost during serialization. DateTimeOffset always includes its offset (±HH:MM), so the timezone is never ambiguous.
+
+Serialization safety — When stored in JSON/databases and deserialized later, DateTimeOffset retains full context. A DateTime can lose its Kind and become "Unspecified," causing silent bugs.
+
+Prevents timezone bugs — If the API ever accepts client times or spans timezones, DateTimeOffset naturally handles comparisons across zones without confusion.
+
+ISO 8601 standard — Better for APIs and external systems expecting 2025-01-22T14:30:00+05:00 rather than ambiguous DateTime serialization.
+
+Code Changes
+Here's what the conversion would look like:
+(Was the full edited ReservationService file, below the and example from the file)
+var now = DateTimeOffset.UtcNow;
+
+For this project: The change is minimal but defensive. Since there are API endpoints and tests, using DateTimeOffset means times survive round-trips through JSON serialization cleanly, and future timezone handling becomes natural.
+
+Want me to apply these changes and re-run tests?
+
+
+USER
+Sounds good, go ahead.
+
+
+COPILOT
+Now I'll apply both changes simultaneously
+
+Perfect! All 23 tests pass with DateTimeOffset. The model and service are now using timezone-aware timestamps that will serialize safely and prevent implicit timezone bugs.
+
+####### NOTES #######
+Commit: korjaus: pienet muutokset koodiin ja DateTime vaihto DateTimeOffsettiin, was added.
 #######

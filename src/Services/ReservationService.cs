@@ -1,4 +1,6 @@
 using falling_nobody_task.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace falling_nobody_task.Services;
 
@@ -16,7 +18,7 @@ public class ReservationService
 
     private void SeedReservations()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
         lock (_lock)
         {
             _reservations.AddRange(new[]
@@ -31,9 +33,9 @@ public class ReservationService
         }
     }
 
-    public IEnumerable<Room> GetAllRooms() => _rooms;
+    public IReadOnlyList<Room> GetAllRooms() => _rooms;
 
-    public IEnumerable<Reservation> GetReservationsForRoom(int roomId)
+    public IReadOnlyList<Reservation> GetReservationsForRoom(int roomId)
     {
         lock (_lock)
         {
@@ -41,11 +43,13 @@ public class ReservationService
         }
     }
 
-    public Reservation CreateReservation(int roomId, DateTime startTime, DateTime endTime)
+    public Reservation CreateReservation(int roomId, DateTimeOffset startTime, DateTimeOffset endTime)
     {
+        var now = DateTimeOffset.UtcNow;
+
         if (startTime >= endTime)
             throw new ArgumentException("Start time must be before end time.");
-        if (startTime <= DateTime.UtcNow)
+        if (startTime <= now)
             throw new ArgumentException("Reservations cannot be made in the past.");
         if (!_rooms.Any(r => r.Id == roomId))
             throw new KeyNotFoundException("Room not found.");
@@ -73,8 +77,7 @@ public class ReservationService
         {
             var reservation = _reservations.FirstOrDefault(r => r.Id == id);
             if (reservation == null) return false;
-            _reservations.Remove(reservation);
-            return true;
+            return _reservations.Remove(reservation);
         }
     }
 }
